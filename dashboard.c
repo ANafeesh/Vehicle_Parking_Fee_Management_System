@@ -36,7 +36,7 @@ int login() {
 void  get_vehicle_rate() {
     FILE *file = fopen("prices.txt", "r");
     if (file == NULL) {
-        printf("No previous records found.\n");
+        printf("No previous records found in the system.\n");
         return;
     }
         char line[200];
