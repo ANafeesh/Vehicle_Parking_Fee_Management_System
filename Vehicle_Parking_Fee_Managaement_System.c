@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <conio.h>
-#include <windows.h> //for color functions
+#include <windows.h>
+
+#define WIDTH 120 // Adjust this to match your console width
 
 typedef struct {
     char vehicle_number[20];
@@ -17,26 +19,33 @@ void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
+void centerText(const char *text) {
+    int len = strlen(text);
+    int padding = (WIDTH - len) / 2;
+    for (int i = 0; i < padding; i++) printf(" ");
+    printf("%s", text);
+}
+
 void printHeader() {
     setColor(11);
-    printf("\n========================================================\n");
+    centerText("========================================================\n");
     setColor(14);
-    printf("               VEHICLE PARKING FEE SYSTEM               \n");
+    centerText("               VEHICLE PARKING FEE SYSTEM               \n");
     setColor(11);
-    printf("========================================================\n\n");
+    centerText("========================================================\n\n");
     setColor(15);
 }
 
 void get_vehicle_rate() {
     FILE *file = fopen("prices.txt", "r");
     if (file == NULL) {
-        printf("No previous rate records found.\n");
+        centerText("No previous rate records found.\n");
         return;
     }
     char line[200];
-    printf("\n\t\t\tParking Rates:\n");
+    centerText("Parking Rates:\n\n");
     while (fgets(line, sizeof(line), file)) {
-        printf("%s", line);
+        centerText(line);
     }
     fclose(file);
 }
@@ -45,7 +54,7 @@ void update_rates() {
     FILE *file = fopen("prices.txt", "w");
     float car, bike, truck, three;
     if (file == NULL) {
-        printf("Error opening rate file.\n");
+        centerText("Error opening rate file.\n");
         return;
     }
 
@@ -60,7 +69,7 @@ void update_rates() {
 
     fprintf(file, "Car: %.2f\nBike: %.2f\nTruck: %.2f\nThree-wheeler: %.2f\n", car, bike, truck, three);
     fclose(file);
-    printf("Rates updated successfully!\n");
+    centerText("Rates updated successfully!\n");
 }
 
 float get_rate_by_type(const char *type) {
@@ -102,7 +111,9 @@ void save_to_individual_file(Vehicle v) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) return;
 
+    setColor(1);
     fprintf(file, "========== Vehicle Record ==========\n");
+    setColor(15);
     fprintf(file, "Vehicle Number     : %s\n", v.vehicle_number);
     fprintf(file, "Vehicle Type       : %s\n", v.type);
     fprintf(file, "Allocated Hours    : %d\n", v.hours);
@@ -116,18 +127,22 @@ void save_to_individual_file(Vehicle v) {
 void display_records() {
     FILE *file = fopen("parking_records.txt", "r");
     if (file == NULL) {
-        printf("No records found.\n");
+        centerText("No records found.\n");
         return;
     }
 
     char vehicle[20], type[20];
     int hrs, parked;
     float fee;
-    printf("\n%-15s %-15s %-10s %-10s %-10s\n", "Vehicle No.", "Type", "Hours", "Parked", "Fee");
-    printf("-------------------------------------------------------------\n");
+    setColor(1);
+    centerText("Vehicle No.      Type            Hours      Parked     Fee\n");
+    centerText("------------------------------------------------------------\n");
+    setColor(15);
 
     while (fscanf(file, "%[^,],%[^,],%d,%d,%f\n", vehicle, type, &hrs, &parked, &fee) != EOF) {
-        printf("%-15s %-15s %-10d %-10d %.2f\n", vehicle, type, hrs, parked, fee);
+        char buffer[200];
+        snprintf(buffer, sizeof(buffer), "%-15s %-15s %-10d %-10d %.2f\n", vehicle, type, hrs, parked, fee);
+        centerText(buffer);
     }
     fclose(file);
 }
@@ -146,9 +161,11 @@ void search_vehicle() {
         return;
     }
 
-    printf("\n--- Vehicle Record ---\n");
+    setColor(2);
+    centerText("--- Vehicle Record ---\n");
+    setColor(15);
     while (fgets(line, sizeof(line), file)) {
-        printf("%s", line);
+        centerText(line);
     }
     fclose(file);
 }
@@ -156,7 +173,7 @@ void search_vehicle() {
 void show_summary() {
     FILE *file = fopen("parking_records.txt", "r");
     if (file == NULL) {
-        printf("No data available for summary.\n");
+        centerText("No data available for summary.\n");
         return;
     }
 
@@ -177,13 +194,17 @@ void show_summary() {
 
     fclose(file);
 
-    printf("\n--- Parking Summary ---\n");
-    printf("Total Vehicles Parked : %d\n", count);
-    printf("Total Fee Collected   : %.2f\n", total_fee);
-    printf("Cars Parked           : %d\n", car);
-    printf("Bikes Parked          : %d\n", bike);
-    printf("Trucks Parked         : %d\n", truck);
-    printf("Three-wheelers Parked : %d\n", three);
+    printf("\n");
+    setColor(1);
+    centerText("--- Parking Summary ---\n");
+    setColor(15);
+    char summary[100];
+    snprintf(summary, sizeof(summary), "Total Vehicles Parked : %d", count); centerText(summary); printf("\n");
+    snprintf(summary, sizeof(summary), "Total Fee Collected   : %.2f", total_fee); centerText(summary); printf("\n");
+    snprintf(summary, sizeof(summary), "Cars Parked           : %d", car); centerText(summary); printf("\n");
+    snprintf(summary, sizeof(summary), "Bikes Parked          : %d", bike); centerText(summary); printf("\n");
+    snprintf(summary, sizeof(summary), "Trucks Parked         : %d", truck); centerText(summary); printf("\n");
+    snprintf(summary, sizeof(summary), "Three-wheelers Parked : %d", three); centerText(summary); printf("\n");
 }
 
 int login() {
@@ -191,9 +212,9 @@ int login() {
     int i = 0;
 
     printHeader();
-    printf("Username: ");
+    centerText("Username: ");
     scanf("%s", username);
-    printf("Password: ");
+    centerText("Password: ");
     while (1) {
         ch = getch();
         if (ch == 13) {
@@ -212,12 +233,12 @@ int login() {
     setColor(10);
     if ((strcmp(username, "admin") == 0 && strcmp(password, "admin123") == 0) ||
         (strcmp(username, "user") == 0 && strcmp(password, "user123") == 0)) {
-        printf("Login successful. Welcome %s!\n", username);
+        centerText("Login successful. Welcome!\n");
         setColor(15);
         return 1;
     } else {
         setColor(12);
-        printf("Log in Failed Invalid credentials!\n");
+        centerText("Log in Failed. Invalid credentials!\n");
         setColor(15);
         return 0;
     }
@@ -250,11 +271,16 @@ void add_vehicle() {
 
     v.total_fee = calculate_fee(v);
 
-    printf("\n--- Ticket ---\n");
-    printf("Vehicle Number: %s \n", v.vehicle_number);
-    printf("Vehicle Type: (%s)\n", v.type);
-    printf("Rate: %.2f\hr\n Allocated: %d\n Parked: %d\n Fee: %.2f\n",
-           v.rate, v.hours, v.parked_hours, v.total_fee);
+    setColor(1);
+    centerText("--- Ticket ---\n");
+    setColor(15);
+    char line[100];
+    snprintf(line, sizeof(line), "Vehicle Number: %s", v.vehicle_number); centerText(line); printf("\n");
+    snprintf(line, sizeof(line), "Vehicle Type  : %s", v.type); centerText(line); printf("\n");
+    snprintf(line, sizeof(line), "Rate: %.2f/hr", v.rate); centerText(line); printf("\n");
+    snprintf(line, sizeof(line), "Allocated: %d  Parked: %d", v.hours, v.parked_hours); centerText(line); printf("\n");
+    snprintf(line, sizeof(line), "Fee: %.2f", v.total_fee); centerText(line); printf("\n");
+
     save_to_file(v);
     save_to_individual_file(v);
 }
@@ -265,13 +291,13 @@ int main() {
 
     int choice;
     while (1) {
-        printf("1. Add Vehicle Entry\n");
-        printf("2. View All Records\n");
-        printf("3. Search Vehicle by Number\n");
-        printf("4. Update Parking Rates\n");
-        printf("5. Show Summary\n");
-        printf("6. Exit\n");
-        printf("Enter your choice: ");
+        centerText("1. Add Vehicle Entry\n");
+        centerText("2. View All Records\n");
+        centerText("3. Search Vehicle by Number\n");
+        centerText("4. Update Parking Rates\n");
+        centerText("5. Show Summary\n");
+        centerText("6. Exit\n");
+        centerText("Enter your choice: ");
         scanf("%d", &choice);
 
         switch (choice) {
@@ -280,11 +306,11 @@ int main() {
             case 3: search_vehicle(); break;
             case 4: update_rates(); break;
             case 5: show_summary(); break;
-            case 6: printf("Exiting... Goodbye!\n"); return 0;
-            default: printf("Invalid choice. Try again.\n");
+            case 6: centerText("Exiting... Goodbye!\n"); return 0;
+            default: centerText("Invalid choice. Try again.\n");
         }
 
-        printf("\nPress any key to return to menu...\n");
+        centerText("\nPress any key to return to menu...\n");
         getch();
     }
 
