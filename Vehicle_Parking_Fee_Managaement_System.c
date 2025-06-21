@@ -4,7 +4,7 @@
 #include <conio.h>
 #include <windows.h>
 
-#define WIDTH 120 // Adjust this to match your console width
+#define WIDTH 120 
 
 typedef struct {
     char vehicle_number[20];
